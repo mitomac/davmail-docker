@@ -1,5 +1,5 @@
-ARG BASE_IMAGE=openjdk:8-jre-alpine
-FROM alpine:latest AS builder
+ARG BASE_IMAGE=eclipse-temurin:11-alpine
+FROM eclipse-temurin:11-alpine AS builder
 
 #trunk rev HEAD (may be unstable)
 #5.4.0 rev 3135
@@ -8,23 +8,24 @@ FROM alpine:latest AS builder
 #6.0.1 rev 3390
 #6.1.0 rev 3423
 #6.2.0 rev 3464
-#6.2.1 rev 3423
-ARG DAVMAIL_REV=3423
+#6.2.1 rev 3547
+ARG DAVMAIL_REV=3547
 
 #exclude these deps in target
 # Default headless: no junit tests, graphics support and winrun
-ARG DEPS_EXCLUDE_ARTIFACTIDS='winrun4j,servlet-api,junit,swt,growl'
-ARG DEPS_EXCLUDE_GROUPIDS='org.boris.winrun4j,javax.servlet,junit,org.eclipse,info.growl'
+#ARG DEPS_EXCLUDE_ARTIFACTIDS='winrun4j,servlet-api,junit,swt,growl'
+#ARG DEPS_EXCLUDE_GROUPIDS='org.boris.winrun4j,javax.servlet,junit,org.eclipse,info.growl'
 
 # Install tools
-RUN apk add --update --no-cache openjdk8 maven subversion bash
+RUN apk add --update --no-cache openjdk11 maven subversion bash
+#RUN apt-get update && apt-get install -y   maven subversion bash
 
 # Get svn TRUNK or released REVISION based on build-arg: DAVMAIL_REV
 RUN svn co -r ${DAVMAIL_REV} https://svn.code.sf.net/p/davmail/code/trunk /davmail-code
 
 # Build + List deps to tempfile
 RUN cd /davmail-code\
- && mvn clean package\
+ && mvn -X clean package\
  && mvn dependency:resolve\
      -DexcludeArtifactIds="${DEPS_EXCLUDE_ARTIFACTIDS}"\
      -DexcludeGroupIds="${DEPS_EXCLUDE_GROUPIDS}"\
@@ -34,9 +35,14 @@ RUN cd /davmail-code\
 # Create target directory
 RUN mkdir -vp /target/davmail /target/davmail/lib
 
+#RUN ls -R /davmail-code/
+#RUN ls -R /tmp/deps
+
+
 # Move dependencies and davmail to target, link davmail to pretty short name
-RUN mv -v $( sed -ne 's/^.*:\([^:]*\.jar\)$/\1/p' /tmp/deps ) /target/davmail/lib/
+#RUN mv -v $( sed -ne 's/^.*:\([^:]*\.jar\)$/\1/p' /tmp/deps ) /target/davmail/lib/
 RUN mv -v /davmail-code/target/davmail-*.jar /target/davmail/
+RUN mv -v /davmail-code/lib/*.jar /target/davmail/lib/
 RUN cd /target/davmail\
  && ln -s davmail-*.jar davmail.jar
 
