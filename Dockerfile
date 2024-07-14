@@ -1,3 +1,4 @@
+#July 14, 2024
 ARG BASE_IMAGE=eclipse-temurin:11-alpine
 FROM eclipse-temurin:11-alpine AS builder
 LABEL org.opencontainers.image.source=https://github.com/mitomac/davmail-docker
