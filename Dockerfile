@@ -1,5 +1,7 @@
 ARG BASE_IMAGE=eclipse-temurin:11-alpine
 FROM eclipse-temurin:11-alpine AS builder
+LABEL org.opencontainers.image.source=https://github.com/mitomac/davmail-docker
+
 
 #trunk rev HEAD (may be unstable)
 #5.4.0 rev 3135
